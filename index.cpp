@@ -17,28 +17,6 @@ struct Node {
 
 Node* head = NULL;
 
-// String utility functions
-bool isEqual(const char a[], const char b[]) {
-    int i = 0;
-    while (a[i] != '\0' && b[i] != '\0') {
-        if (a[i] != b[i]) return false;
-        i++;
-    }
-    return a[i] == '\0' && b[i] == '\0';
-}
-
-int compareString(const char a[], const char b[]) {
-    int i = 0;
-    while (a[i] != '\0' && b[i] != '\0') {
-        if (a[i] < b[i]) return -1;
-        if (a[i] > b[i]) return 1;
-        i++;
-    }
-    if (a[i] == '\0' && b[i] == '\0') return 0;
-    if (a[i] == '\0') return -1;
-    return 1;
-}
-
 void simpanKeFile() {
     FILE* file = fopen("musik.dat", "wb");
     if (file == NULL) {
@@ -112,7 +90,7 @@ void tambahLagu() {
         }
     }
 
-    simpanKeFile(); // Simpan perubahan 
+    simpanKeFile();
     cout << jumlah << " lagu berhasil ditambahkan!\n";
 }
 
@@ -137,36 +115,51 @@ void tampilkanLagu() {
     }
 }
 
-// Sort music title Insertion Sort
+// Sort musik title bubble Sort
 void urutJudul() {
     if (head == NULL || head->next == NULL) return;
     
-    Node* sorted = NULL;
-    Node* current = head;
-    
-    while (current != NULL) {
-        Node* next = current->next;
+    bool swapped;
+    do {
+        swapped = false;
+        Node* current = head;
         
-        if (sorted == NULL || compareString(current->data.title, sorted->data.title) < 0) {
-            current->next = sorted;
-            sorted = current;
-        } else {
-            Node* temp = sorted;
-            while (temp->next != NULL && compareString(current->data.title, temp->next->data.title) > 0) {
-                temp = temp->next;
+        while (current != NULL && current->next != NULL) {
+            // Bandingkan judul current dengan next
+            int i = 0;
+            bool shouldSwap = false;
+            
+            while (current->data.title[i] != '\0' && current->next->data.title[i] != '\0') {
+                if (current->data.title[i] > current->next->data.title[i]) {
+                    shouldSwap = true;
+                    break;
+                } else if (current->data.title[i] < current->next->data.title[i]) {
+                    break;
+                }
+                i++;
             }
-            current->next = temp->next;
-            temp->next = current;
+            
+            // Jika current lebih panjang dari next, swap
+            if (!shouldSwap && current->data.title[i] != '\0' && current->next->data.title[i] == '\0') {
+                shouldSwap = true;
+            }
+            
+            if (shouldSwap) {
+                // Swap data
+                Music temp = current->data;
+                current->data = current->next->data;
+                current->next->data = temp;
+                swapped = true;
+            }
+            
+            current = current->next;
         }
-        
-        current = next;
-    }
+    } while (swapped);
     
-    head = sorted;
-    simpanKeFile(); // Simpan perubahan
+    simpanKeFile(); 
 }
 
-// Sort music rating  Selection Sort 
+// Sort musik rating selection Sort 
 void urutRatingTertinggi() {
     if (head == NULL || head->next == NULL) return;
     
@@ -192,10 +185,10 @@ void urutRatingTertinggi() {
         
         i = i->next;
     }
-    simpanKeFile(); // Simpan perubahan 
+    simpanKeFile();
 }
 
-// Sort music rating
+// Sort musik rating
 void urutRatingTerendah() {
     if (head == NULL || head->next == NULL) return;
     
@@ -221,7 +214,7 @@ void urutRatingTerendah() {
         
         i = i->next;
     }
-    simpanKeFile(); // Simpan perubahan
+    simpanKeFile(); 
 }
 
 // sorting options
@@ -278,47 +271,78 @@ void cariLagu() {
         cout << "Pilihan: ";
         cin >> option;
         
-        if (option == 3) {
-            cout << "Kembali ke menu utama...\n";
-            break;
-        }
-        
-        cin.ignore();
-        
-        char keyword[30];
-        cout << "Masukkan keyword pencarian: ";
-        cin.getline(keyword, 30);
-        
-        bool found = false;
-        cout << "\nHasil pencarian:\n";
-        
-        Node* current = head;
-        while (current != NULL) {
-            bool match = false;
-            
-            switch (option) {
-                case 1: match = isEqual(current->data.title, keyword); break;
-                case 2: match = isEqual(current->data.artist, keyword); break;
+        switch (option) {
+            case 1:
+            case 2: {
+                cin.ignore();
+                char keyword[30];
+                cout << "Masukkan keyword pencarian: ";
+                cin.getline(keyword, 30);
+                
+                bool found = false;
+                cout << "\nHasil pencarian:\n";
+                
+                Node* current = head;
+                while (current != NULL) {
+                    bool match = false;
+                    int i = 0;
+                    bool isEqual = true;
+                    
+                    switch (option) {
+                        case 1:
+                            // Cari berdasarkan judul
+                            while (keyword[i] != '\0' && current->data.title[i] != '\0') {
+                                if (keyword[i] != current->data.title[i]) {
+                                    isEqual = false;
+                                    break;
+                                }
+                                i++;
+                            }
+                            if (isEqual && keyword[i] == '\0' && current->data.title[i] == '\0') {
+                                match = true;
+                            }
+                            break;
+                        case 2:
+                            // Cari berdasarkan artis
+                            while (keyword[i] != '\0' && current->data.artist[i] != '\0') {
+                                if (keyword[i] != current->data.artist[i]) {
+                                    isEqual = false;
+                                    break;
+                                }
+                                i++;
+                            }
+                            if (isEqual && keyword[i] == '\0' && current->data.artist[i] == '\0') {
+                                match = true;
+                            }
+                            break;
+                    }
+                    
+                    if (match) {
+                        found = true;
+                        cout << "Judul: " << current->data.title
+                             << "\nAlbum: " << current->data.album
+                             << "\nArtis: " << current->data.artist
+                             << "\nGenre: " << current->data.genre
+                             << "\nRating: " << current->data.rating << "\n\n";
+                    }
+                    
+                    current = current->next;
+                }
+                
+                if (!found) cout << "Tidak ditemukan.\n";
+                break;
             }
-            
-            if (match) {
-                found = true;
-                cout << "Judul: " << current->data.title
-                     << "\nAlbum: " << current->data.album
-                     << "\nArtis: " << current->data.artist
-                     << "\nGenre: " << current->data.genre
-                     << "\nRating: " << current->data.rating << "\n\n";
-            }
-            
-            current = current->next;
+            case 3:
+                cout << "Kembali ke menu utama...\n";
+                break;
+            default:
+                cout << "❗ Pilihan tidak valid, coba lagi!\n";
         }
-        
-        if (!found) cout << "Tidak ditemukan.\n";
         
     } while (option != 3);
 }
 
-// delete music
+// delete musik
 void hapusLagu() {
     if (head == NULL) {
         cout << "\nDaftar lagu kosong!\n";
@@ -334,53 +358,80 @@ void hapusLagu() {
         cout << "Pilih mode: ";
         cin >> mode;
         
-        if (mode == 3) {
-            cout << "Kembali ke menu utama...\n";
-            break;
-        }
-        
-        if (mode == 2) {
-            while (head != NULL) {
-                Node* temp = head;
-                head = head->next;
-                delete temp;
-            }
-            simpanKeFile(); // Simpan perubahan
-            cout << "Semua lagu telah dihapus.\n";
-            continue;
-        }
-        
-        char deleteTitle[30];
-        cin.ignore();
-        cout << "Masukkan judul lagu yang ingin dihapus: ";
-        cin.getline(deleteTitle, 30);
-        
-        bool found = false;
-        
-        if (head != NULL && isEqual(head->data.title, deleteTitle)) {
-            Node* temp = head;
-            head = head->next;
-            delete temp;
-            found = true;
-        } else {
-            Node* current = head;
-            while (current != NULL && current->next != NULL) {
-                if (isEqual(current->next->data.title, deleteTitle)) {
-                    Node* temp = current->next;
-                    current->next = current->next->next;
-                    delete temp;
-                    found = true;
-                    break;
+        switch (mode) {
+            case 1: {
+                char deleteTitle[30];
+                cin.ignore();
+                cout << "Masukkan judul lagu yang ingin dihapus: ";
+                cin.getline(deleteTitle, 30);
+                
+                bool found = false;
+                
+                // Check head node
+                if (head != NULL) {
+                    int i = 0;
+                    bool isEqual = true;
+                    while (deleteTitle[i] != '\0' && head->data.title[i] != '\0') {
+                        if (deleteTitle[i] != head->data.title[i]) {
+                            isEqual = false;
+                            break;
+                        }
+                        i++;
+                    }
+                    if (isEqual && deleteTitle[i] == '\0' && head->data.title[i] == '\0') {
+                        Node* temp = head;
+                        head = head->next;
+                        delete temp;
+                        found = true;
+                    }
                 }
-                current = current->next;
+                
+                // Check other nodes
+                if (!found) {
+                    Node* current = head;
+                    while (current != NULL && current->next != NULL) {
+                        int i = 0;
+                        bool isEqual = true;
+                        while (deleteTitle[i] != '\0' && current->next->data.title[i] != '\0') {
+                            if (deleteTitle[i] != current->next->data.title[i]) {
+                                isEqual = false;
+                                break;
+                            }
+                            i++;
+                        }
+                        if (isEqual && deleteTitle[i] == '\0' && current->next->data.title[i] == '\0') {
+                            Node* temp = current->next;
+                            current->next = current->next->next;
+                            delete temp;
+                            found = true;
+                            break;
+                        }
+                        current = current->next;
+                    }
+                }
+                
+                if (found) {
+                    simpanKeFile(); 
+                    cout << "Lagu berhasil dihapus.\n";
+                } else {
+                    cout << "Lagu tidak ditemukan.\n";
+                }
+                break;
             }
-        }
-        
-        if (found) {
-            simpanKeFile(); // Simpan perubahan
-            cout << "Lagu berhasil dihapus.\n";
-        } else {
-            cout << "Lagu tidak ditemukan.\n";
+            case 2:
+                while (head != NULL) {
+                    Node* temp = head;
+                    head = head->next;
+                    delete temp;
+                }
+                simpanKeFile(); // Simpan perubahan
+                cout << "Semua lagu telah dihapus.\n";
+                break;
+            case 3:
+                cout << "Kembali ke menu utama...\n";
+                break;
+            default:
+                cout << "❗ Pilihan tidak valid, coba lagi!\n";
         }
         
     } while (mode != 3);
@@ -393,33 +444,43 @@ void updateRating() {
         return;
     }
         
-        char searchTitle[30];
-        cin.ignore();
-        cout << "Masukkan judul lagu yang ingin diperbarui: ";
-        cin.getline(searchTitle, 30);
-        
-        bool found = false;
-        Node* current = head;
-        
-        while (current != NULL) {
-            if (isEqual(current->data.title, searchTitle)) {
-                cout << "Rating sekarang: " << current->data.rating << "\n";
-                cout << "Masukkan rating baru (0.0 - 5.0): ";
-                float newRating;
-                cin >> newRating;
-                current->data.rating = newRating;
-                found = true;
+    char searchTitle[30];
+    cin.ignore();
+    cout << "Masukkan judul lagu yang ingin diperbarui: ";
+    cin.getline(searchTitle, 30);
+    
+    bool found = false;
+    Node* current = head;
+    
+    while (current != NULL) {
+        // Bandingkan string dengan loop
+        int i = 0;
+        bool isEqual = true;
+        while (searchTitle[i] != '\0' && current->data.title[i] != '\0') {
+            if (searchTitle[i] != current->data.title[i]) {
+                isEqual = false;
                 break;
             }
-            current = current->next;
+            i++;
         }
-        
-        if (found) {
-            simpanKeFile(); // Simpan perubahan ke file
-            cout << "Rating berhasil diperbarui.\n";
-        } else {
-            cout << "Lagu tidak ditemukan.\n";
-        } 
+        if (isEqual && searchTitle[i] == '\0' && current->data.title[i] == '\0') {
+            cout << "Rating sekarang: " << current->data.rating << "\n";
+            cout << "Masukkan rating baru (0.0 - 5.0): ";
+            float newRating;
+            cin >> newRating;
+            current->data.rating = newRating;
+            found = true;
+            break;
+        }
+        current = current->next;
+    }
+    
+    if (found) {
+        simpanKeFile(); 
+        cout << "Rating berhasil diperbarui.\n";
+    } else {
+        cout << "Lagu tidak ditemukan.\n";
+    } 
 }
 
 void tampilkanMenu() {
@@ -459,7 +520,7 @@ int main() {
 
     simpanKeFile();
     
-    // Clean up linked list before exiting
+    // bersihkan link list
     while (head != NULL) {
         Node* temp = head;
         head = head->next;
