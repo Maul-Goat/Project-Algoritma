@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdio>
+#include <iomanip>
 using namespace std;
 
 struct Music {
@@ -17,7 +18,7 @@ struct Node {
 
 Node* head = NULL;
 
-void simpanKeFile() {
+void simpanKeFile() { // simpan file
     FILE* file = fopen("musik.dat", "wb");
     if (file == NULL) {
         cout << "Gagal membuka file untuk penyimpanan.\n";
@@ -33,7 +34,7 @@ void simpanKeFile() {
     fclose(file);
 }
 
-void bacaDariFile() {
+void bacaDariFile() { // baca file
     FILE* file = fopen("musik.dat", "rb");
     if (file == NULL) {
         return;
@@ -59,7 +60,7 @@ void bacaDariFile() {
     fclose(file);
 }
 
-void tambahLagu() {
+void tambahLagu() { // menambah musik
     Music m;
     int jumlah;
     cout << "Ingin menambahkan berapa lagu? ";
@@ -94,28 +95,43 @@ void tambahLagu() {
     cout << jumlah << " lagu berhasil ditambahkan!\n";
 }
 
-void tampilkanLagu() {
+void tampilkanLagu() { // menampilkan musik
     if (head == NULL) {
         cout << "\nDaftar lagu kosong!\n";
         return;
     }
-    
-    cout << "\nDaftar Semua Lagu:\n";
+
+    cout << "\n================================================================================================\n";
+    cout << "                                       DAFTAR SEMUA LAGU                                          ";
+    cout << "\n================================================================================================\n";
+    cout << "| " << setw(3) << "No"
+         << " | " << setw(20) << left << "Judul"
+         << " | " << setw(20) << left << "Album"
+         << " | " << setw(18) << left << "Artis"
+         << " | " << setw(10) << left << "Genre"
+         << " | " << setw(6) << "Rating" << " |\n";
+    cout << "------------------------------------------------------------------------------------------------\n";
+
     Node* current = head;
-    int count = 1;
-    
+    int no = 1;
+
     while (current != NULL) {
-        cout << "No: " << count++ << endl;
-        cout << "Judul: " << current->data.title
-             << "\nAlbum: " << current->data.album
-             << "\nArtis: " << current->data.artist
-             << "\nGenre: " << current->data.genre
-             << "\nRating: " << current->data.rating << "\n\n";
+        cout << "| " << setw(3) << right << no++
+             << " | " << setw(20) << left << current->data.title
+             << " | " << setw(20) << left << current->data.album
+             << " | " << setw(18) << left << current->data.artist
+             << " | " << setw(10) << left << current->data.genre
+             << " | " << fixed << setprecision(1) << setw(6) << current->data.rating << " |\n";
         current = current->next;
     }
+
+    cout << "================================================================================================\n";
+    
+    system("pause");
+    system("cls");
 }
 
-// Sort musik title bubble Sort
+// Sort judul musik bubble Sort
 void urutJudul() {
     if (head == NULL || head->next == NULL) return;
     
@@ -159,7 +175,7 @@ void urutJudul() {
     simpanKeFile(); 
 }
 
-// Sort musik rating selection Sort 
+// Sort rating musik selection Sort 
 void urutRatingTertinggi() {
     if (head == NULL || head->next == NULL) return;
     
@@ -188,7 +204,7 @@ void urutRatingTertinggi() {
     simpanKeFile();
 }
 
-// Sort musik rating
+// Sort rating musik
 void urutRatingTerendah() {
     if (head == NULL || head->next == NULL) return;
     
@@ -217,7 +233,7 @@ void urutRatingTerendah() {
     simpanKeFile(); 
 }
 
-// sorting options
+// menu sorting
 void urutkanLagu() {
     int option;
     
@@ -255,7 +271,7 @@ void urutkanLagu() {
     } while (option != 4);
 }
 
-// search for music
+// search musik
 void cariLagu() {
     if (head == NULL) {
         cout << "\nDaftar lagu kosong!\n";
@@ -264,7 +280,7 @@ void cariLagu() {
     
     int option;
     do {
-        cout << "\n==== CARI LAGU ====\n";
+        cout << "\n======= CARI LAGU =======\n";
         cout << "1. Cari berdasarkan Judul\n";
         cout << "2. Cari berdasarkan Artis\n";
         cout << "3. Kembali ke menu utama\n";
@@ -319,11 +335,26 @@ void cariLagu() {
                     
                     if (match) {
                         found = true;
-                        cout << "Judul: " << current->data.title
-                             << "\nAlbum: " << current->data.album
-                             << "\nArtis: " << current->data.artist
-                             << "\nGenre: " << current->data.genre
-                             << "\nRating: " << current->data.rating << "\n\n";
+
+                        cout << "\n==========================================================================================\n";
+                        cout << "                                       HASIL PENCARIAN                                      ";
+                        cout << "\n==========================================================================================\n";
+                        cout << "| " << setw(20) << left << "Judul"
+                            << " | " << setw(20) << left << "Album"
+                            << " | " << setw(18) << left << "Artis"
+                            << " | " << setw(10) << left << "Genre"
+                            << " | " << setw(6) << "Rating" << " |\n";
+                        cout << "------------------------------------------------------------------------------------------\n";
+
+                        int no = 1;
+
+                            cout << "| " << setw(20) << left << current->data.title
+                                << " | " << setw(20) << left << current->data.album
+                                << " | " << setw(18) << left << current->data.artist
+                                << " | " << setw(10) << left << current->data.genre
+                                << " | " << fixed << setprecision(1) << setw(6) << current->data.rating << " |\n";        
+
+                        cout << "==========================================================================================\n";
                     }
                     
                     current = current->next;
@@ -424,7 +455,7 @@ void hapusLagu() {
                     head = head->next;
                     delete temp;
                 }
-                simpanKeFile(); // Simpan perubahan
+                simpanKeFile(); 
                 cout << "Semua lagu telah dihapus.\n";
                 break;
             case 3:
@@ -507,12 +538,18 @@ int main() {
         cin >> choice;
 
         switch (choice) {
-            case 1: tambahLagu(); break;
-            case 2: tampilkanLagu(); break;
-            case 3: urutkanLagu(); break;
-            case 4: cariLagu(); break;
-            case 5: hapusLagu(); break;
-            case 6: updateRating(); break;
+            case 1: tambahLagu(); 
+                    break;
+            case 2: tampilkanLagu();
+                    break;
+            case 3: urutkanLagu(); 
+                    break;
+            case 4: cariLagu(); 
+                    break;
+            case 5: hapusLagu();    
+                    break;
+            case 6: updateRating(); 
+                    break;
             case 7: cout << "Terima kasih telah menggunakan aplikasi!\n"; break;
             default: cout << "❗ Pilihan tidak valid, coba lagi!\n";
         }
